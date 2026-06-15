@@ -1,0 +1,98 @@
+[gd_scene load_steps=6 format=3 uid="uid://immersivedashmain"]
+
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/Player.gd" id="2_player"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
+size = Vector2(44, 44)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.0392157, 0.0470588, 0.0627451, 0.8)
+border_color = Color(0.203922, 0.239216, 0.313726, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 34
+font_color = Color(0.960784, 0.980392, 1, 1)
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Player" type="CharacterBody2D" parent="World"]
+position = Vector2(180, 456)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("2_player")
+
+[node name="Body" type="ColorRect" parent="World/Player"]
+offset_left = -23.0
+offset_top = -23.0
+offset_right = 23.0
+offset_bottom = 23.0
+color = Color(0.129412, 0.831373, 0.992157, 1)
+
+[node name="Eye" type="ColorRect" parent="World/Player"]
+offset_left = 4.0
+offset_top = -10.0
+offset_right = 14.0
+offset_bottom = 0.0
+color = Color(0.0156863, 0.0235294, 0.0392157, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Player"]
+shape = SubResource("RectangleShape2D_player")
+
+[node name="Camera2D" type="Camera2D" parent="World/Player"]
+position = Vector2(340, -90)
+enabled = true
+zoom = Vector2(1, 1)
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HudPanel" type="Panel" parent="UI"]
+anchors_preset = 0
+offset_left = 22.0
+offset_top = 18.0
+offset_right = 360.0
+offset_bottom = 118.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Title" type="Label" parent="UI/HudPanel"]
+offset_left = 18.0
+offset_top = 12.0
+offset_right = 320.0
+offset_bottom = 52.0
+text = "Immersive Dash"
+label_settings = SubResource("LabelSettings_title")
+
+[node name="Stats" type="Label" parent="UI/HudPanel"]
+offset_left = 20.0
+offset_top = 58.0
+offset_right = 318.0
+offset_bottom = 88.0
+text = "0m  |  Speed 1.00x"
+
+[node name="Message" type="Label" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -50.0
+offset_right = 280.0
+offset_bottom = 90.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Space / Click to jump"
+label_settings = SubResource("LabelSettings_title")
