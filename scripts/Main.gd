@@ -1,5 +1,6 @@
 extends Node2D
 
+const CONFIG := preload("res://scripts/GameConfig.gd")
 const GROUND_Y := 520.0
 const START_POSITION := Vector2(180, 456)
 const BLOCK_SIZE := Vector2(96, 48)
@@ -7,25 +8,29 @@ const LEVEL_LENGTH := 7200.0
 
 @onready var world: Node2D = $World
 @onready var player: CharacterBody2D = $World/Player
+@onready var camera: Camera2D = $World/Camera2D
 @onready var stats_label: Label = $UI/HudPanel/Stats
 @onready var message_label: Label = $UI/Message
 
 var game_over := false
 var best_distance := 0
+var camera_x := CONFIG.CAMERA_START_X
 
 func _ready() -> void:
 	player.crashed.connect(_on_player_crashed)
 	_build_level()
 	_start_run()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if game_over:
 		return
 
 	var distance := maxf(0.0, player.global_position.x - START_POSITION.x)
-	player.speed_multiplier = 1.0 + minf(distance / 3600.0, 0.75)
+	player.speed_multiplier = 1.0
+	camera_x += CONFIG.RUN_SPEED * delta
+	camera.global_position = Vector2(camera_x, CONFIG.CAMERA_Y)
 	best_distance = maxi(best_distance, int(distance / 10.0))
-	stats_label.text = "%dm  |  Speed %.2fx" % [int(distance / 10.0), player.speed_multiplier]
+	stats_label.text = "%dm  |  Speed 1.00x" % int(distance / 10.0)
 
 	if player.global_position.y > 820.0:
 		player.die()
@@ -38,23 +43,27 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_SPACE or event.keycode == KEY_UP or event.keycode == KEY_W:
+			player.set_jump_held(true)
 			if game_over:
 				_start_run()
 			else:
 				player.try_jump()
 		elif event.keycode == KEY_R:
 			_start_run()
+	elif event is InputEventKey and not event.pressed:
+		if event.keycode == KEY_SPACE or event.keycode == KEY_UP or event.keycode == KEY_W:
+			player.set_jump_held(false)
 	elif event is InputEventMouseButton and event.pressed:
 		if game_over:
 			_start_run()
-		else:
-			player.try_jump()
 
 func _start_run() -> void:
 	game_over = false
 	player.reset_player(START_POSITION)
+	camera_x = CONFIG.CAMERA_START_X
+	camera.global_position = Vector2(camera_x, CONFIG.CAMERA_Y)
 	stats_label.text = "0m  |  Speed 1.00x"
-	message_label.text = "Space / Click to jump"
+	message_label.text = "Space / Up / W to jump"
 	await get_tree().create_timer(1.0).timeout
 	if not game_over:
 		message_label.text = ""
@@ -90,8 +99,8 @@ func _build_level() -> void:
 	for block_position in block_runs:
 		_create_block(block_position)
 
-	for portal_x in [2400.0, 4950.0]:
-		_create_boost_marker(Vector2(portal_x, GROUND_Y - 120.0))
+	for orb_x in [2400.0, 4950.0]:
+		_create_jump_orb(Vector2(orb_x, GROUND_Y - 120.0))
 
 func _create_background() -> void:
 	var background := ColorRect.new()
@@ -183,11 +192,21 @@ func _create_spike(position: Vector2) -> void:
 	visual.color = Color(1.0, 0.22, 0.39)
 	spike.add_child(visual)
 
-func _create_boost_marker(position: Vector2) -> void:
-	var marker := Node2D.new()
-	marker.name = "BoostMarker"
-	marker.position = position
-	world.add_child(marker)
+func _create_jump_orb(position: Vector2) -> void:
+	var orb := Area2D.new()
+	orb.name = "JumpOrb"
+	orb.collision_layer = 8
+	orb.collision_mask = 2
+	orb.position = position
+	orb.body_entered.connect(_on_orb_body_entered.bind(orb))
+	orb.body_exited.connect(_on_orb_body_exited.bind(orb))
+	world.add_child(orb)
+
+	var shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 40.0
+	shape.shape = circle
+	orb.add_child(shape)
 
 	var ring := Line2D.new()
 	ring.width = 6.0
@@ -196,13 +215,21 @@ func _create_boost_marker(position: Vector2) -> void:
 	for i in range(0, 24):
 		var angle := TAU * float(i) / 24.0
 		ring.add_point(Vector2(cos(angle), sin(angle)) * 38.0)
-	marker.add_child(ring)
+	orb.add_child(ring)
 
 	var label := Label.new()
-	label.text = "x"
+	label.text = "+"
 	label.position = Vector2(-6.0, -14.0)
-	marker.add_child(label)
+	orb.add_child(label)
 
 func _on_hazard_body_entered(body: Node2D) -> void:
 	if body == player:
 		player.die()
+
+func _on_orb_body_entered(body: Node2D, orb: Area2D) -> void:
+	if body == player:
+		player.enter_jump_orb(orb)
+
+func _on_orb_body_exited(body: Node2D, orb: Area2D) -> void:
+	if body == player:
+		player.exit_jump_orb(orb)

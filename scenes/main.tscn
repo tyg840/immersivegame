@@ -50,12 +50,11 @@ color = Color(0.0156863, 0.0235294, 0.0392157, 1)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/Player"]
 shape = SubResource("RectangleShape2D_player")
 
-[node name="Camera2D" type="Camera2D" parent="World/Player"]
-position = Vector2(340, -90)
+[node name="Camera2D" type="Camera2D" parent="World"]
+position = Vector2(520, 360)
 enabled = true
 zoom = Vector2(1, 1)
-position_smoothing_enabled = true
-position_smoothing_speed = 7.0
+position_smoothing_enabled = false
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -94,5 +93,5 @@ offset_right = 280.0
 offset_bottom = 90.0
 horizontal_alignment = 1
 vertical_alignment = 1
-text = "Space / Click to jump"
+text = "Space / Up / W to jump"
 label_settings = SubResource("LabelSettings_title")

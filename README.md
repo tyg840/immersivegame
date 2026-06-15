@@ -38,8 +38,26 @@ windows_debug_x86_64.exe
 
 ## Controls
 
-- Space, Up, W, or mouse click: jump
+- Space, Up, or W: jump
+- Hold Space, Up, or W: keep jumping when you land
 - R: restart
+
+## Tuning
+
+Basic game parameters live in:
+
+```text
+scripts\GameConfig.gd
+```
+
+Edit that file to tune values such as:
+
+- `RUN_SPEED`
+- `GRAVITY`
+- `JUMP_FORCE`
+- `ORB_JUMP_FORCE`
+- `MAX_FALL_SPEED`
+- camera start position
 
 ## Export
 
